@@ -1,0 +1,7 @@
+game_id,date,home_team,away_team,p_home_win,p_away_win,elo_home,elo_away,elo_diff,rest_home,rest_away,home_b2b,away_b2b,home_streak,away_streak,home_injuries,away_injuries,home_players_out,away_players_out,home_injury_impact,away_injury_impact,injury_impact_diff,edge_home_pct,edge_away_pct,has_edge,kelly_units,recommendation
+0022501114,2026-04-02,CHA,PHX,0.8227,0.1773,1548.5,1528.2,20.3,2,1,False,True,0,2,None,None,0,0,0.0,0.0,0.0,17.8,-17.8,False,0.0,NO BET — insufficient edge
+0022501115,2026-04-02,DET,MIN,0.7917,0.2083,1613.7,1579.4,34.3,1,2,True,False,0,0,None,None,0,0,0.0,0.0,0.0,19.83,-19.83,False,0.0,NO BET — insufficient edge
+0022501116,2026-04-02,OKC,LAL,0.7845,0.2155,1714.1,1622.0,92.0,1,1,True,True,2,3,None,None,0,0,0.0,0.0,0.0,4.05,-4.05,False,0.0,NO BET — insufficient edge
+0022501117,2026-04-02,GSW,CLE,0.619,0.381,1470.3,1597.4,-127.1,3,1,False,True,0,2,None,None,0,0,0.0,0.0,0.0,41.03,-41.03,False,0.0,NO BET — insufficient edge
+0022501118,2026-04-02,POR,NOP,0.8105,0.1895,1487.6,1434.0,53.6,2,2,False,False,1,0,None,None,0,0,0.0,0.0,0.0,11.48,-11.48,False,0.0,NO BET — insufficient edge
+0022501119,2026-04-02,LAC,SAS,0.5998,0.4002,1559.0,1694.2,-135.2,2,2,False,False,5,9,None,None,0,0,0.0,0.0,0.0,20.35,-20.35,True,5.0,BET LAC (+142) | Edge: 20.4% | Units: 5.00 | EV: +0.451

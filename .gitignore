@@ -1,0 +1,32 @@
+# Data files (too large for GitHub)
+data/raw/
+data/cache/
+data/odds/
+
+# Keep processed features and model
+# (needed for Streamlit Cloud to run predictions)
+# data/processed/  <- DO commit this
+# models/          <- DO commit this
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+venv/
+nba_model/
+
+# Logs (generated at runtime)
+logs/*.log
+logs/update_log.json
+
+# Keep backtest CSVs and bet tracker
+# logs/backtest_real_*.csv  <- DO commit
+# logs/bet_tracker.json     <- DO commit
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Streamlit
+.streamlit/secrets.toml

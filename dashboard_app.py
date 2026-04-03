@@ -236,8 +236,6 @@ page = st.sidebar.radio("", [
     "🔬 Filter Playground",
     "📋 Bet Tracker",
     "📈 Performance",
-    "📊 Backtest Results",
-    "⚙️ Model Stats",
 ])
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -346,23 +344,76 @@ if page == "🏀 Today's Predictions":
             away   = row.get("away_team","?")
             p_home = float(row.get("p_home_win", row.get("model_prob_home", 0.5)))
             rec    = str(row.get("recommendation",""))
-            is_bet = "BET" in rec
+            is_bet = "BET" in rec and "NO BET" not in rec
             elo    = float(row.get("elo_diff", 0) or 0)
             b2b_h  = " [B2B]" if row.get("home_b2b") else ""
             b2b_a  = " [B2B]" if row.get("away_b2b") else ""
 
-            c1, c2 = st.columns([2, 5])
+            # Extract odds and edge from recommendation or columns
+            edge_h = row.get("edge_home_pct")
+            edge_a = row.get("edge_away_pct")
+            home_ml = row.get("home_ml", row.get("home_odds"))
+            away_ml = row.get("away_ml", row.get("away_odds"))
+
+            # Try to parse odds from recommendation if not in columns
+            if home_ml is None and "(" in rec:
+                try:
+                    odds_part = rec.split("(")[1].split(")")[0]
+                    # odds_part like "+142" or "-150"
+                except:
+                    pass
+
+            c1, c2, c3 = st.columns([2, 4, 3])
             with c1:
                 st.markdown(f"**{home}{b2b_h}** vs {away}{b2b_a}")
-                st.caption(f"Elo diff: {elo:+.0f}")
+                st.caption(f"Elo: {elo:+.0f}")
             with c2:
                 bar = "█" * int(p_home*20) + "░" * (20-int(p_home*20))
                 st.markdown(f"`{bar}` {p_home*100:.0f}% / {(1-p_home)*100:.0f}%")
                 if is_bet:
                     st.markdown(f"<span style='color:#3ddc84;font-weight:600'>⭐ {rec}</span>",
                                 unsafe_allow_html=True)
+                elif "NO BET" in rec:
+                    st.markdown(f"<span style='color:#ff4b4b'>✗ {rec}</span>",
+                                unsafe_allow_html=True)
                 else:
                     st.caption(rec)
+            with c3:
+                # Show odds and edge for each side
+                try:
+                    if home_ml is not None and away_ml is not None:
+                        hml = int(float(home_ml))
+                        aml = int(float(away_ml))
+                        h_str = f"+{hml}" if hml > 0 else str(hml)
+                        a_str = f"+{aml}" if aml > 0 else str(aml)
+                        eh = float(edge_h) if edge_h is not None and str(edge_h) != "nan" else None
+                        ea = float(edge_a) if edge_a is not None and str(edge_a) != "nan" else None
+                        if eh is not None:
+                            h_color = "#3ddc84" if eh > 0 else "#ff4b4b"
+                            a_color = "#3ddc84" if ea > 0 else "#ff4b4b"
+                            st.markdown(
+                                f"<div style='font-size:13px;line-height:1.8'>"
+                                f"<span style='color:#aaa'>{home}:</span> "
+                                f"<b>{h_str}</b> "
+                                f"<span style='color:{h_color}'>({eh:+.1f}%)</span><br>"
+                                f"<span style='color:#aaa'>{away}:</span> "
+                                f"<b>{a_str}</b> "
+                                f"<span style='color:{a_color}'>({ea:+.1f}%)</span>"
+                                f"</div>",
+                                unsafe_allow_html=True
+                            )
+                        else:
+                            st.markdown(
+                                f"<div style='font-size:13px;line-height:1.8'>"
+                                f"<span style='color:#aaa'>{home}:</span> <b>{h_str}</b><br>"
+                                f"<span style='color:#aaa'>{away}:</span> <b>{a_str}</b>"
+                                f"</div>",
+                                unsafe_allow_html=True
+                            )
+                    else:
+                        st.caption("No odds")
+                except Exception:
+                    st.caption("No odds")
 
 # ══════════════════════════════════════════════════════════════════════════════
 # PAGE 2: FILTER PLAYGROUND
@@ -381,21 +432,32 @@ elif page == "🔬 Filter Playground":
 
 
 
+    # Load saved settings from config as defaults
+    try:
+        from config.settings import MIN_EDGE_PCT, BET_MAX_ODDS, BET_MIN_ODDS, BET_MAX_EDGE
+        saved_min_edge = int(MIN_EDGE_PCT)
+        saved_max_edge = int(BET_MAX_EDGE)
+        saved_min_odds = int(abs(BET_MIN_ODDS))
+        saved_max_odds = int(BET_MAX_ODDS)
+    except:
+        saved_min_edge, saved_max_edge = 15, 30
+        saved_min_odds, saved_max_odds = 140, 500
+
     # ── Filter controls ───────────────────────────────────────────────────────
     st.subheader("📐 Filter Settings")
     col1, col2, col3 = st.columns(3)
 
     with col1:
         st.markdown("**Edge**")
-        min_edge = st.slider("Min edge %", 4, 30, 15, step=1)
-        max_edge = st.slider("Max edge %", 15, 60, 30, step=1)
+        min_edge = st.slider("Min edge %", 4, 30, saved_min_edge, step=1)
+        max_edge = st.slider("Max edge %", 15, 60, saved_max_edge, step=1)
 
     with col2:
         st.markdown("**Odds range**")
         min_odds_abs = st.slider("Min odds (absolute, e.g. 140 = skip ≤+140)",
-                                  100, 200, 140, step=5)
+                                  100, 200, saved_min_odds, step=5)
         max_odds = st.slider("Max odds (e.g. 500 = skip >+500)",
-                              200, 1000, 500, step=25)
+                              200, 1000, saved_max_odds, step=25)
         underdogs_only = st.checkbox("Underdogs only", value=True)
 
     with col3:
@@ -541,23 +603,25 @@ elif page == "🔬 Filter Playground":
             cfg_path = ROOT / "config" / "settings.py"
             with open(cfg_path) as f:
                 cfg = f.read()
-            cfg = cfg.replace(
-                f"MIN_EDGE_PCT     = 15.0",
-                f"MIN_EDGE_PCT     = {float(min_edge)}"
-            ).replace(
-                f"BET_MAX_ODDS       = 500",
-                f"BET_MAX_ODDS       = {max_odds}"
-            ).replace(
-                f"BET_MIN_ODDS       = -140",
-                f"BET_MIN_ODDS       = {min_odds_filter}"
-            ).replace(
-                f"BET_MAX_EDGE       = 30.0",
-                f"BET_MAX_EDGE       = {float(max_edge)}"
-            )
+
+            import re
+            cfg = re.sub(r"MIN_EDGE_PCT\s*=\s*[\d.]+",
+                         f"MIN_EDGE_PCT     = {float(min_edge)}", cfg)
+            cfg = re.sub(r"BET_MAX_ODDS\s*=\s*[\d.]+",
+                         f"BET_MAX_ODDS       = {int(max_odds)}", cfg)
+            cfg = re.sub(r"BET_MIN_ODDS\s*=\s*-[\d.]+",
+                         f"BET_MIN_ODDS       = {int(min_odds_filter)}", cfg)
+            cfg = re.sub(r"BET_MAX_EDGE\s*=\s*[\d.]+",
+                         f"BET_MAX_EDGE       = {float(max_edge)}", cfg)
+
             with open(cfg_path, "w") as f:
                 f.write(cfg)
-            st.success(f"✅ Config updated! Min edge: {min_edge}%, Max odds: +{max_odds}, "
-                       f"Min odds: {min_odds_filter}, Max edge: {max_edge}%")
+
+            # Clear cache so next load picks up new defaults
+            st.cache_data.clear()
+            st.success(f"✅ Saved! Min edge: {min_edge}%, Odds: +{abs(min_odds_filter)+1}–+{max_odds}, "
+                       f"Max edge: {max_edge}%. Sliders will default to these values on next load.")
+            st.rerun()
         except Exception as e:
             st.error(f"Could not update config: {e}")
 

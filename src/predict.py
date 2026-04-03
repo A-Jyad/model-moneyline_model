@@ -280,6 +280,11 @@ def predict_today(
         # Get structured injury features
         inj_feats = get_injury_features_for_game(home, away, injuries)
 
+        # Extract odds from ev or live_odds dict
+        game_odds = live_odds.get((home, away), live_odds.get((home.upper(), away.upper()), {}))
+        home_ml_val = game_odds.get("home") if game_odds else None
+        away_ml_val = game_odds.get("away") if game_odds else None
+
         results.append({
             "game_id":              gid,
             "date":                 target_date,
@@ -303,6 +308,8 @@ def predict_today(
             "home_injury_impact":   inj_feats["home_injury_impact"],
             "away_injury_impact":   inj_feats["away_injury_impact"],
             "injury_impact_diff":   inj_feats["injury_impact_diff"],
+            "home_ml":              home_ml_val,
+            "away_ml":              away_ml_val,
             "edge_home_pct":        ev.get("edge_home_pct"),
             "edge_away_pct":        ev.get("edge_away_pct"),
             "has_edge":             ev.get("has_edge", False),
@@ -364,7 +371,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--date", default=None, help="Date (YYYY-MM-DD). Default: today.")
-    parser.add_argument("--season", default="2024-25")
+    parser.add_argument("--season", default=None, help="Season string (default: auto-detect)")
     parser.add_argument("--edge", type=float, default=MIN_EDGE_PCT)
     args = parser.parse_args()
 

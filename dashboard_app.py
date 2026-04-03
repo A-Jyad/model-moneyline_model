@@ -288,12 +288,25 @@ if page == "🏀 Today's Predictions":
         else:
             flagged = preds[preds["recommendation"].astype(str).str.contains("BET", na=False)]
 
+        # Read live filter settings — session state takes priority over config file
+        try:
+            from config.settings import MIN_EDGE_PCT, BET_MAX_ODDS, BET_MIN_ODDS
+            cfg_min_edge = int(MIN_EDGE_PCT)
+            cfg_min_odds = int(abs(BET_MIN_ODDS)) + 1
+            cfg_max_odds = int(BET_MAX_ODDS)
+        except:
+            cfg_min_edge, cfg_min_odds, cfg_max_odds = 15, 141, 500
+
+        live_min_edge = st.session_state.get("saved_min_edge", cfg_min_edge)
+        live_min_odds = st.session_state.get("saved_min_odds", cfg_min_odds - 1) + 1
+        live_max_odds = st.session_state.get("saved_max_odds", cfg_max_odds)
+
         m1, m2, m3, m4 = st.columns(4)
         m1.metric("Games", len(preds))
         m2.metric("Flagged Bets", len(flagged),
                   delta=f"⭐ BET" if len(flagged) > 0 else None)
-        m3.metric("Min Edge", "15%")
-        m4.metric("Odds Range", "+141–+500")
+        m3.metric("Min Edge", f"{live_min_edge}%")
+        m4.metric("Odds Range", f"+{live_min_odds}–+{live_max_odds}")
 
         st.divider()
 

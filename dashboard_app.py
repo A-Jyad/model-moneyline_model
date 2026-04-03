@@ -432,16 +432,21 @@ elif page == "🔬 Filter Playground":
 
 
 
-    # Load saved settings from config as defaults
+    # Load saved settings — session state first, then config file, then hardcoded defaults
     try:
         from config.settings import MIN_EDGE_PCT, BET_MAX_ODDS, BET_MIN_ODDS, BET_MAX_EDGE
-        saved_min_edge = int(MIN_EDGE_PCT)
-        saved_max_edge = int(BET_MAX_EDGE)
-        saved_min_odds = int(abs(BET_MIN_ODDS))
-        saved_max_odds = int(BET_MAX_ODDS)
+        cfg_min_edge = int(MIN_EDGE_PCT)
+        cfg_max_edge = int(BET_MAX_EDGE)
+        cfg_min_odds = int(abs(BET_MIN_ODDS))
+        cfg_max_odds = int(BET_MAX_ODDS)
     except:
-        saved_min_edge, saved_max_edge = 15, 30
-        saved_min_odds, saved_max_odds = 140, 500
+        cfg_min_edge, cfg_max_edge = 15, 30
+        cfg_min_odds, cfg_max_odds = 140, 500
+
+    saved_min_edge = st.session_state.get("saved_min_edge", cfg_min_edge)
+    saved_max_edge = st.session_state.get("saved_max_edge", cfg_max_edge)
+    saved_min_odds = st.session_state.get("saved_min_odds", cfg_min_odds)
+    saved_max_odds = st.session_state.get("saved_max_odds", cfg_max_odds)
 
     # ── Filter controls ───────────────────────────────────────────────────────
     st.subheader("📐 Filter Settings")
@@ -599,31 +604,35 @@ elif page == "🔬 Filter Playground":
     # ── Save as current config button ─────────────────────────────────────────
     st.divider()
     if st.button("💾 Apply these filters as live config", type="primary"):
+        # Save to session state (works on Streamlit Cloud where filesystem is read-only)
+        st.session_state["saved_min_edge"]   = min_edge
+        st.session_state["saved_max_edge"]   = max_edge
+        st.session_state["saved_min_odds"]   = min_odds_abs
+        st.session_state["saved_max_odds"]   = max_odds
+        st.session_state["saved_underdogs"]  = underdogs_only
+
+        # Also try writing to config file (works locally)
         try:
+            import re
             cfg_path = ROOT / "config" / "settings.py"
             with open(cfg_path) as f:
                 cfg = f.read()
-
-            import re
             cfg = re.sub(r"MIN_EDGE_PCT\s*=\s*[\d.]+",
                          f"MIN_EDGE_PCT     = {float(min_edge)}", cfg)
             cfg = re.sub(r"BET_MAX_ODDS\s*=\s*[\d.]+",
                          f"BET_MAX_ODDS       = {int(max_odds)}", cfg)
             cfg = re.sub(r"BET_MIN_ODDS\s*=\s*-[\d.]+",
-                         f"BET_MIN_ODDS       = {int(min_odds_filter)}", cfg)
+                         f"BET_MIN_ODDS       = {int(-min_odds_abs)}", cfg)
             cfg = re.sub(r"BET_MAX_EDGE\s*=\s*[\d.]+",
                          f"BET_MAX_EDGE       = {float(max_edge)}", cfg)
-
             with open(cfg_path, "w") as f:
                 f.write(cfg)
+        except:
+            pass  # Read-only filesystem on cloud — session state is enough
 
-            # Clear cache so next load picks up new defaults
-            st.cache_data.clear()
-            st.success(f"✅ Saved! Min edge: {min_edge}%, Odds: +{abs(min_odds_filter)+1}–+{max_odds}, "
-                       f"Max edge: {max_edge}%. Sliders will default to these values on next load.")
-            st.rerun()
-        except Exception as e:
-            st.error(f"Could not update config: {e}")
+        st.success(f"✅ Saved! Min edge: {min_edge}%, Odds: +{min_odds_abs+1}–+{max_odds}, "
+                   f"Max edge: {max_edge}%. Sliders will default to these values this session.")
+        st.rerun()
 
 # ══════════════════════════════════════════════════════════════════════════════
 # PAGE 3: BET TRACKER

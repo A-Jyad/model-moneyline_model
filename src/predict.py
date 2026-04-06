@@ -190,7 +190,19 @@ def predict_today(
 
     # Load Elo
     elo = EloSystem()
-    elo.load()
+    from config.settings import CACHE_DIR
+    if (CACHE_DIR / "elo_state.json").exists():
+        elo.load()
+    else:
+        # Cloud: recompute Elo from committed game_features.parquet
+        log.info("No Elo cache — recomputing from game_features.parquet...")
+        try:
+            from config.settings import PROC_DIR
+            gf = pd.read_parquet(PROC_DIR / "game_features.parquet")
+            elo.fit(gf)
+            log.info(f"Elo recomputed from {len(gf)} games: {len(elo.ratings)} teams")
+        except Exception as e:
+            log.warning(f"Elo recompute failed: {e} — ratings will be default 1500")
 
     # Load injuries
     injuries = fetch_injury_report()
@@ -198,7 +210,12 @@ def predict_today(
     # Auto-fetch live odds (uses Odds API key if set, else Action Network)
     log.info("Fetching live odds...")
     try:
-        live_odds = get_odds_dict()
+        # Clear stale cache before fetching
+        from config.settings import CACHE_DIR
+        stale = CACHE_DIR / "odds_live.json"
+        if stale.exists():
+            stale.unlink()
+        live_odds = get_odds_dict(force_refresh=True)
         if live_odds:
             log.info(f"Live odds loaded: {len(live_odds)} matchups")
         else:

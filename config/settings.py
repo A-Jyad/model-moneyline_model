@@ -43,7 +43,15 @@ SEASONS = [
     "2025-26",
 ]
 # Current active season (auto-used for schedule + injury fetching)
-CURRENT_SEASON = "2025-26"
+# Auto-detect current season based on today's date (switches in October)
+def _get_current_season() -> str:
+    from datetime import date
+    d = date.today()
+    if d.month >= 10:
+        return f"{d.year}-{str(d.year+1)[-2:]}"
+    return f"{d.year-1}-{str(d.year)[-2:]}"
+
+CURRENT_SEASON = _get_current_season()
 SEASON_TYPES = ["Regular Season"]   # add "Playoffs" if desired
 
 # Cache filenames
@@ -106,7 +114,7 @@ VIG_REMOVE_METHOD= "multiplicative"  # "additive" or "multiplicative"
 # Best config: edge >= 15%, underdogs only, odds +141 to +500
 # Result: +5.3% ROI, ~147 bets/season, both seasons positive (+6%, +5%)
 BET_UNDERDOGS_ONLY = True    # favorites consistently negative across all seasons
-BET_MAX_ODDS       = 1000     # >+500 adds noise; sweet spot is +141 to +500
+BET_MAX_ODDS       = 500     # >+500 adds noise; sweet spot is +141 to +500
 BET_MIN_ODDS       = -140    # skip near-even odds (+100 to +140 dead zone)
 BET_MAX_EDGE       = 30.0    # >30% = model overconfident, ROI deteriorates
 

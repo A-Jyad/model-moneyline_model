@@ -1,0 +1,45 @@
+name: Daily NBA Predictions
+
+on:
+  schedule:
+    # Run at 11:00 PM UTC every day (7am Malaysia time MYT = UTC+8)
+    - cron: '0 23 * * *'
+  workflow_dispatch:  # Allow manual trigger from GitHub UI
+
+jobs:
+  predict:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run predictions
+        run: python predict.py
+        env:
+          PYTHONPATH: .
+
+      - name: Commit predictions CSV
+        run: |
+          git config --global user.name "NBA Model Bot"
+          git config --global user.email "bot@nba-model.com"
+          git add logs/predictions_*.csv
+          git diff --staged --quiet || git commit -m "Auto predictions $(date +'%Y-%m-%d')"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

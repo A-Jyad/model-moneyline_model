@@ -96,14 +96,13 @@ def _save_live_cache(data: list):
     with open(LIVE_CACHE_FILE, "w") as f:
         json.dump(data, f, indent=2)
 
-    # Also save to daily history for CLV analysis
+    # Save daily snapshot (always overwrite to keep fresh)
     today = date.today().isoformat()
     history_file = HISTORY_CACHE_DIR / f"odds_{today}.json"
-    if not history_file.exists():
-        with open(history_file, "w") as f:
-            json.dump({"date": today, "fetched_at": datetime.now().isoformat(),
-                       "games": data}, f, indent=2)
-        log.info(f"Odds snapshot saved: {history_file.name}")
+    with open(history_file, "w") as f:
+        json.dump({"date": today, "fetched_at": datetime.now().isoformat(),
+                   "games": data}, f, indent=2)
+    log.info(f"Odds snapshot saved: {history_file.name}")
 
 
 # ── Source 1: The Odds API ────────────────────────────────────────────────────

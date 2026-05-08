@@ -1,0 +1,3 @@
+game_id,date,home_team,away_team,p_home_win,p_away_win,elo_home,elo_away,elo_diff,rest_home,rest_away,home_b2b,away_b2b,home_streak,away_streak,home_injuries,away_injuries,home_players_out,away_players_out,home_injury_impact,away_injury_impact,injury_impact_diff,home_ml,away_ml,edge_home_pct,edge_away_pct,has_edge,kelly_units,recommendation
+0042500213,2026-05-08,PHI,NYK,0.5272,0.4728,1518.9,1597.8,-78.9,2,2,False,False,1,5,None,None,0,0,0.0,0.0,0.0,-155,130,-5.58,5.58,False,0.0,NO BET — insufficient edge
+0042500233,2026-05-08,MIN,SAS,0.5739,0.4261,1579.7,1698.8,-119.1,2,2,False,False,1,3,None,None,0,0,0.0,0.0,0.0,180,-218,23.14,-23.14,True,3.0,BET MIN (+180) | Edge: 23.1% | Units: 3.00 | EV: +0.607

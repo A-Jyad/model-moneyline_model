@@ -1,0 +1,2 @@
+game_id,date,home_team,away_team,p_home_win,p_away_win,elo_home,elo_away,elo_diff,rest_home,rest_away,home_b2b,away_b2b,home_streak,away_streak,home_injuries,away_injuries,home_players_out,away_players_out,home_injury_impact,away_injury_impact,injury_impact_diff,home_ml,away_ml,edge_home_pct,edge_away_pct,has_edge,kelly_units,recommendation
+0042500301,2026-05-19,NYK,CLE,0.6354,0.3646,1597.8,1609.3,-11.4,2,2,False,False,5,0,None,None,0,0,0.0,0.0,0.0,-265,215,-6.03,6.03,False,0.0,NO BET — insufficient edge
